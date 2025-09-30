@@ -245,18 +245,24 @@ jobs:
           if (prs.length > 0) {
             const pr = prs[0];
             
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              body: `🔄 **New commits pushed!**
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `🔄 **New commits pushed!**
+                
+                **Latest commit:** ${{ steps.commit_info.outputs.last_commit_message }}  
+                **Total commits:** ${{ steps.commit_info.outputs.commit_count }}  
+                **Author:** ${{ steps.commit_info.outputs.last_commit_author }}
+                
+                *Updated automatically by GitHub Actions*`
+              });
               
-              **Latest commit:** ${{ steps.commit_info.outputs.last_commit_message }}  
-              **Total commits:** ${{ steps.commit_info.outputs.commit_count }}  
-              **Author:** ${{ steps.commit_info.outputs.last_commit_author }}
-              
-              *Updated automatically by GitHub Actions*`
-            });
-            
-            console.log(`Updated PR: ${pr.html_url}`);
+              console.log(`Updated PR: ${pr.html_url}`);
+            } catch (error) {
+              console.log(`⚠️ Failed to comment on PR #${pr.number}:`, error.message);
+              console.log('This is usually due to insufficient permissions.');
+              // Don't fail the workflow if commenting fails
+            }
           }
