@@ -3,7 +3,21 @@
 Uma aplicação web moderna para visualizar e gerenciar componentes React reutilizáveis da biblioteca **rfritas-ui-libraries**.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![React](https://img.shields.io/badge/React-18.3.1-blue.svg)
+![## 🔮 Próximos Passos
+
+### 🎯 **Fase 0: Infraestrutura e Deploy** ✅ **CONCLUÍDA**
+
+#### **🚀 GitHub Pages + Actions**
+- [x] **Configuração de deploy automático via GitHub Actions** ✅
+- [x] **Workflow de CI/CD para build e deploy** ✅  
+- [x] **Cache de dependências para builds mais rápidos** ✅
+- [x] **Deploy preview para Pull Requests** ✅
+- [x] **Workflow de criação automática de PRs** ✅
+- [x] **Template padronizado de Pull Requests** ✅
+- [x] **Tratamento de erros e fallbacks** ✅
+- [ ] Configuração de domínio customizado
+- [ ] SSL/HTTPS automático  
+- [ ] Otimização de assets para produção://img.shields.io/badge/React-18.3.1-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.4.19-purple.svg)
 ![Tailwind](https://img.shields.io/badge/Tailwind-3.4.17-teal.svg)
@@ -130,6 +144,20 @@ Para habilitar workflows automáticos:
    - Habilite GitHub Pages nas configurações do repositório
    - Source: GitHub Actions
    - Deploy automático configurado no `main`
+
+## 📚 Documentação
+
+### **Guias de Configuração**
+- 📋 [GitHub Workflows](.github/README.md) - Documentação dos workflows de CI/CD
+- 🔐 [Configuração de PAT](.github/PAT-SETUP.md) - Setup do Personal Access Token  
+- 🚨 [Troubleshooting](.github/TROUBLESHOOTING.md) - Solução de problemas comuns
+- 🤖 [Exemplos de Auto-PR](.github/AUTO-PR-EXAMPLES.md) - Exemplos de PRs automáticos
+- 📝 [Template de PR](.github/pull_request_template.md) - Template padrão para Pull Requests
+
+### **Workflows Disponíveis**
+- ⚡ **deploy.yml** - Deploy automático para GitHub Pages
+- 🔍 **pr-preview.yml** - Validação e preview de Pull Requests  
+- 🤖 **auto-pr.yml** - Criação automática de Pull Requests
 
 ## 📋 Scripts Disponíveis
 
