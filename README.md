@@ -2,22 +2,8 @@
 
 Uma aplicação web moderna para visualizar e gerenciar componentes React reutilizáveis da biblioteca **rfritas-ui-libraries**.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![## 🔮 Próximos Passos
-
-### 🎯 **Fase 0: Infraestrutura e Deploy** ✅ **CONCLUÍDA**
-
-#### **🚀 GitHub Pages + Actions**
-- [x] **Configuração de deploy automático via GitHub Actions** ✅
-- [x] **Workflow de CI/CD para build e deploy** ✅  
-- [x] **Cache de dependências para builds mais rápidos** ✅
-- [x] **Deploy preview para Pull Requests** ✅
-- [x] **Workflow de criação automática de PRs** ✅
-- [x] **Template padronizado de Pull Requests** ✅
-- [x] **Tratamento de erros e fallbacks** ✅
-- [ ] Configuração de domínio customizado
-- [ ] SSL/HTTPS automático  
-- [ ] Otimização de assets para produção://img.shields.io/badge/React-18.3.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![React](https://img.shields.io/badge/React-18.3.1-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.4.19-purple.svg)
 ![Tailwind](https://img.shields.io/badge/Tailwind-3.4.17-teal.svg)
@@ -250,18 +236,18 @@ export default defineConfig({
 });
 ```
 
-## �🔮 Próximos Passos
+## 🔮 Próximos Passos
 
-### 🎯 **Fase 0: Infraestrutura e Deploy**
+### 🎯 **Fase 0: Infraestrutura e Deploy** ✅ **CONCLUÍDA**
 
 #### **🚀 GitHub Pages + Actions**
-- [ ] Configuração de deploy automático via GitHub Actions
-- [ ] Workflow de CI/CD para build e deploy
-- [ ] Cache de dependências para builds mais rápidos
-- [ ] Deploy preview para Pull Requests
-- [ ] Configuração de domínio customizado
-- [ ] SSL/HTTPS automático
-- [ ] Otimização de assets para produção
+- [x] **Configuração de deploy automático via GitHub Actions** ✅
+- [x] **Workflow de CI/CD para build e deploy** ✅  
+- [x] **Cache de dependências para builds mais rápidos** ✅
+- [x] **Deploy preview para Pull Requests** ✅
+- [x] **Workflow de criação automática de PRs** ✅
+- [x] **Template padronizado de Pull Requests** ✅
+- [x] **Tratamento de erros e fallbacks** ✅
 
 ### 🎯 **Fase 1: Integração com APIs Externas**
 
