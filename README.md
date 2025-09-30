@@ -118,6 +118,19 @@ src/
    npm run preview
    ```
 
+### 🔐 Configuração de CI/CD (Opcional)
+
+Para habilitar workflows automáticos:
+
+1. **Configure PAT para Auto-PR**
+   - Consulte [PAT-SETUP.md](.github/PAT-SETUP.md) para instruções detalhadas
+   - Necessário para criação automática de Pull Requests
+
+2. **Configure GitHub Pages**
+   - Habilite GitHub Pages nas configurações do repositório
+   - Source: GitHub Actions
+   - Deploy automático configurado no `main`
+
 ## 📋 Scripts Disponíveis
 
 | Script | Descrição |

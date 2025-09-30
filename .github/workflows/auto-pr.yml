@@ -1,0 +1,245 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches:
+      - 'feat/**'
+      - 'feat/*'
+      - 'fix/**' 
+      - 'fix/*'
+      - 'docs/**'
+      - 'docs/*'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+    environment: pull_request
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.PAT || github.token }}
+        
+    - name: Extract branch info
+      id: branch_info
+      run: |
+        BRANCH_NAME="${{ github.ref_name }}"
+        echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        
+        # Extract type and description from branch name
+        if [[ $BRANCH_NAME =~ ^(feat|fix|docs)/(.*) ]]; then
+          TYPE="${BASH_REMATCH[1]}"
+          DESCRIPTION="${BASH_REMATCH[2]}"
+        elif [[ $BRANCH_NAME =~ ^(feat|fix|docs)-(.*) ]]; then
+          TYPE="${BASH_REMATCH[1]}"  
+          DESCRIPTION="${BASH_REMATCH[2]}"
+        else
+          TYPE="feature"
+          DESCRIPTION="$BRANCH_NAME"
+        fi
+        
+        echo "type=$TYPE" >> $GITHUB_OUTPUT
+        echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+        
+        # Format description for title
+        FORMATTED_DESC=$(echo "$DESCRIPTION" | sed 's/[-_]/ /g' | sed 's/\b\w/\U&/g')
+        echo "formatted_description=$FORMATTED_DESC" >> $GITHUB_OUTPUT
+        
+    - name: Get commit info
+      id: commit_info
+      run: |
+        LAST_COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+        LAST_COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+        COMMIT_COUNT=$(git rev-list --count HEAD ^origin/main)
+        
+        echo "last_commit_message=$LAST_COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+        echo "last_commit_author=$LAST_COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+        echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+        
+    - name: Check if PR already exists
+      id: check_pr
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: prs } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:${{ steps.branch_info.outputs.branch_name }}`,
+            state: 'open'
+          });
+          
+          const prExists = prs.length > 0;
+          console.log(`PR exists: ${prExists}`);
+          
+          if (prExists) {
+            console.log(`Existing PR: ${prs[0].html_url}`);
+          }
+          
+          return prExists;
+          
+    - name: Generate PR description
+      id: pr_description
+      run: |
+        TYPE="${{ steps.branch_info.outputs.type }}"
+        
+        case $TYPE in
+          "feat")
+            EMOJI="✨"
+            TYPE_LABEL="Feature"
+            TYPE_CHECKBOX="- [x] **Feature**: A new feature or enhancement."
+            ;;
+          "fix") 
+            EMOJI="🐛"
+            TYPE_LABEL="Bug Fix"
+            TYPE_CHECKBOX="- [x] **Fix**: A bug fix."
+            ;;
+          "docs")
+            EMOJI="📚"
+            TYPE_LABEL="Documentation"
+            TYPE_CHECKBOX="- [x] **Docs**: Documentation changes only."
+            ;;
+          *)
+            EMOJI="🔧"
+            TYPE_LABEL="Update"
+            TYPE_CHECKBOX="- [x] **Chore**: A change that does not modify src or test files (e.g., build process, dependency updates)."
+            ;;
+        esac
+        
+        # Read the template
+        cp .github/pull_request_template.md pr_body.md
+        
+        # Replace placeholders with actual content
+        
+        # Summary section
+        SUMMARY="**Branch:** \`${{ steps.branch_info.outputs.branch_name }}\`  
+        **Type:** $TYPE_LABEL  
+        **Author:** ${{ steps.commit_info.outputs.last_commit_author }}  
+        **Commits:** ${{ steps.commit_info.outputs.commit_count }}
+        
+        > **Latest commit:** ${{ steps.commit_info.outputs.last_commit_message }}
+        
+        **Automated PR created for $TYPE_LABEL: ${{ steps.branch_info.outputs.formatted_description }}**"
+        
+        # Type section with pre-selected checkbox
+        TYPE_SECTION="$TYPE_CHECKBOX
+        - [ ] **Breaking Change**: A fix or feature that would cause existing functionality to not work as expected.
+        - [ ] **Chore**: A change that does not modify src or test files (e.g., build process, dependency updates)."
+        
+        # Auto-generated info
+        AUTO_INFO="**Branch:** \`${{ steps.branch_info.outputs.branch_name }}\`  
+        **Type:** $TYPE_LABEL ($TYPE)  
+        **Author:** ${{ steps.commit_info.outputs.last_commit_author }}  
+        **Total Commits:** ${{ steps.commit_info.outputs.commit_count }}  
+        **Latest Commit:** ${{ steps.commit_info.outputs.last_commit_message }}  
+        **Created:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')  
+        
+        *🤖 This PR was automatically created by GitHub Actions*"
+        
+        # Replace placeholders in template
+        if [[ "$TYPE" != "feat" ]]; then
+          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Feature\*\*/- [ ] **Feature**/')
+        fi
+        if [[ "$TYPE" != "fix" ]]; then
+          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Fix\*\*/- [ ] **Fix**/')
+        fi
+        if [[ "$TYPE" != "docs" ]]; then
+          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Docs\*\*/- [ ] **Docs**/')
+        fi
+        
+        # Use a more robust method to replace content
+        sed -i "s|<!-- AUTO_GENERATED_SUMMARY -->|$SUMMARY|" pr_body.md
+        sed -i "s|<!-- AUTO_GENERATED_TYPE -->|Based on branch name, this appears to be a **$TYPE_LABEL**:|" pr_body.md
+        sed -i "s|<!-- AUTO_GENERATED_INFO -->|$AUTO_INFO|" pr_body.md
+        
+    - name: Create Pull Request
+      if: steps.check_pr.outputs.result == 'false'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PAT || github.token }}
+        script: |
+          const fs = require('fs');
+          const prBody = fs.readFileSync('pr_body.md', 'utf8');
+          
+          const type = '${{ steps.branch_info.outputs.type }}';
+          const description = '${{ steps.branch_info.outputs.formatted_description }}';
+          
+          let emoji = '🔧';
+          switch(type) {
+            case 'feat': emoji = '✨'; break;
+            case 'fix': emoji = '🐛'; break;  
+            case 'docs': emoji = '📚'; break;
+          }
+          
+          const title = `${emoji} ${type}: ${description}`;
+          
+          try {
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              head: '${{ steps.branch_info.outputs.branch_name }}',
+              base: 'main',
+              body: prBody,
+              draft: false
+            });
+            
+            console.log(`Created PR: ${pr.html_url}`);
+            
+            // Add labels based on type
+            const labels = [type];
+            if (type === 'feat') labels.push('enhancement');
+            if (type === 'fix') labels.push('bug');
+            if (type === 'docs') labels.push('documentation');
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: labels
+            });
+            
+            console.log(`Added labels: ${labels.join(', ')}`);
+            
+          } catch (error) {
+            console.error('Error creating PR:', error);
+            throw error;
+          }
+          
+    - name: Update existing PR
+      if: steps.check_pr.outputs.result == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PAT || github.token }}
+        script: |
+          const { data: prs } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:${{ steps.branch_info.outputs.branch_name }}`,
+            state: 'open'
+          });
+          
+          if (prs.length > 0) {
+            const pr = prs[0];
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: `🔄 **New commits pushed!**
+              
+              **Latest commit:** ${{ steps.commit_info.outputs.last_commit_message }}  
+              **Total commits:** ${{ steps.commit_info.outputs.commit_count }}  
+              **Author:** ${{ steps.commit_info.outputs.last_commit_author }}
+              
+              *Updated automatically by GitHub Actions*`
+            });
+            
+            console.log(`Updated PR: ${pr.html_url}`);
+          }
