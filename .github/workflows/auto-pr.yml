@@ -142,21 +142,38 @@ jobs:
         
         *🤖 This PR was automatically created by GitHub Actions*"
         
-        # Replace placeholders in template
-        if [[ "$TYPE" != "feat" ]]; then
-          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Feature\*\*/- [ ] **Feature**/')
-        fi
-        if [[ "$TYPE" != "fix" ]]; then
-          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Fix\*\*/- [ ] **Fix**/')
-        fi
-        if [[ "$TYPE" != "docs" ]]; then
-          TYPE_SECTION=$(echo "$TYPE_SECTION" | sed 's/- \[ \] \*\*Docs\*\*/- [ ] **Docs**/')
-        fi
+        # Create temporary files for complex replacements
+        echo "$SUMMARY" > summary.tmp
+        echo "Based on branch name, this appears to be a **$TYPE_LABEL**:" > type.tmp
+        echo "$AUTO_INFO" > info.tmp
         
-        # Use a more robust method to replace content
-        sed -i "s|<!-- AUTO_GENERATED_SUMMARY -->|$SUMMARY|" pr_body.md
-        sed -i "s|<!-- AUTO_GENERATED_TYPE -->|Based on branch name, this appears to be a **$TYPE_LABEL**:|" pr_body.md
-        sed -i "s|<!-- AUTO_GENERATED_INFO -->|$AUTO_INFO|" pr_body.md
+        # Use safer replacement method with temporary files
+        sed -i 's|<!-- AUTO_GENERATED_SUMMARY -->|SUMMARY_PLACEHOLDER|' pr_body.md
+        sed -i 's|<!-- AUTO_GENERATED_TYPE -->|TYPE_PLACEHOLDER|' pr_body.md  
+        sed -i 's|<!-- AUTO_GENERATED_INFO -->|INFO_PLACEHOLDER|' pr_body.md
+        
+        # Replace placeholders with file contents
+        awk '
+        /SUMMARY_PLACEHOLDER/ { 
+          while ((getline line < "summary.tmp") > 0) print line; 
+          close("summary.tmp"); 
+          next 
+        }
+        /TYPE_PLACEHOLDER/ { 
+          while ((getline line < "type.tmp") > 0) print line; 
+          close("type.tmp"); 
+          next 
+        }
+        /INFO_PLACEHOLDER/ { 
+          while ((getline line < "info.tmp") > 0) print line; 
+          close("info.tmp"); 
+          next 
+        }
+        { print }
+        ' pr_body.md > pr_body_final.md
+        
+        mv pr_body_final.md pr_body.md
+        rm -f summary.tmp type.tmp info.tmp
         
     - name: Create Pull Request
       if: steps.check_pr.outputs.result == 'false'
