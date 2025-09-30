@@ -2,7 +2,7 @@
 
 Uma aplicação web moderna para visualizar e gerenciar componentes React reutilizáveis da biblioteca **rfritas-ui-libraries**.
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
 ![React](https://img.shields.io/badge/React-18.3.1-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.4.19-purple.svg)
@@ -127,9 +127,19 @@ Para habilitar workflows automáticos:
    - Necessário para criação automática de Pull Requests
 
 2. **Configure GitHub Pages**
-   - Habilite GitHub Pages nas configurações do repositório
-   - Source: GitHub Actions
-   - Deploy automático configurado no `main`
+   
+   **📋 Passos para configuração manual:**
+   ```
+   1. Repositório → Settings → Pages
+   2. Source: Deploy from a branch → GitHub Actions
+   3. Aguardar ativação do Pages (pode levar alguns minutos)
+   4. Push para main irá gerar deploy automático
+   ```
+   
+   **🔧 Configuração automática:**
+   - O workflow de deploy tenta configurar automaticamente
+   - Em caso de erro, use a configuração manual acima
+   - Verify que o repositório é público (Pages requer repo público para contas gratuitas)
 
 ## 📚 Documentação
 
